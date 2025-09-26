@@ -22,9 +22,10 @@ model User {
   role      Role     @default(staff)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  movements ItemMovement[]
 
-  @@map("users") 
-  ItemMovement ItemMovement[]
+  @@map("users")
 }
 
 enum Role {
@@ -33,105 +34,94 @@ enum Role {
 }
 
 model Customer {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   nama      String
-  alamat    String? 
-  telepon   String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-   items     Item[]
+  alamat    String?
+  telepon   String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  items     Item[]
+  invoices  Invoice[]
 
   @@map("customers")
-  Invoice Invoice[]
 }
 
 model Item {
-  id                 String   @id @default(uuid())
-  nama_barang        String
-  sku                String?  @unique 
-  barcode            String?  @unique 
+  id                  String   @id @default(uuid())
+  nama_barang         String
+  sku                 String?  @unique
+  barcode             String?  @unique
+  
+  jumlah              Int      @default(0)
+  
   minimum_stock_level Int      @default(0)
-  status             Status   @default(masuk_gudang)
-  tanggal_masuk      DateTime @default(now())
-  tanggal_keluar     DateTime?
-
-   shipmentId         String?
-  shipment           Shipment? @relation(fields: [shipmentId], references: [id])
-
-  customerId         String
-  customer           Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
-  movements          ItemMovement[]
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  status              Status   @default(masuk_gudang)
+  tanggal_masuk       DateTime @default(now())
+  tanggal_keluar      DateTime?
+  shipmentId          String?
+  shipment            Shipment? @relation(fields: [shipmentId], references: [id])
+  customerId          String
+  customer            Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  movements           ItemMovement[]
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   @@map("items")
 }
 
 model ItemMovement {
   id             String       @id @default(uuid())
-  quantityChange Int          
+  quantityChange Int
   notes          String?
-  type           MovementType 
-
+  type           MovementType
   itemId         String
   item           Item         @relation(fields: [itemId], references: [id], onDelete: Cascade)
-
   userId         String
   user           User         @relation(fields: [userId], references: [id])
-
   createdAt      DateTime     @default(now())
 
   @@map("item_movements")
 }
 
 model Shipment {
-  id               String   @id @default(uuid())
-  trackingNumber   String   @unique @default(cuid()) 
-  destination      String   
-  etd              DateTime 
-  eta              DateTime 
-  status           ShipmentStatus @default(LOADING)
-
-  items            Item[]   
-  invoice   Invoice?
-
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id             String         @id @default(uuid())
+  trackingNumber String         @unique @default(cuid())
+  destination    String
+  etd            DateTime
+  eta            DateTime
+  status         ShipmentStatus @default(LOADING)
+  items          Item[]
+  invoice        Invoice?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   @@map("shipments")
 }
 
 model Invoice {
-  id             String   @id @default(uuid())
-  invoiceNumber  String   @unique @default(cuid()) 
-  issueDate      DateTime @default(now())
-  dueDate        DateTime 
-  totalAmount    Float    
-  status         InvoiceStatus @default(DRAFT)
-
-  customerId     String
-  customer       Customer @relation(fields: [customerId], references: [id])
-
-  shipmentId     String   @unique // Satu faktur hanya untuk satu pengiriman
-  shipment       Shipment @relation(fields: [shipmentId], references: [id])
-
-  items          InvoiceItem[] // Rincian item tagihan
-
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            String        @id @default(uuid())
+  invoiceNumber String        @unique @default(cuid())
+  issueDate     DateTime      @default(now())
+  dueDate       DateTime
+  totalAmount   Float
+  status        InvoiceStatus @default(DRAFT)
+  customerId    String
+  customer      Customer      @relation(fields: [customerId], references: [id])
+  shipmentId    String        @unique
+  shipment      Shipment      @relation(fields: [shipmentId], references: [id])
+  items         InvoiceItem[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   @@map("invoices")
 }
 
 model InvoiceItem {
-  id          String @id @default(uuid())
-  description String 
+  id          String  @id @default(uuid())
+  description String
   quantity    Int
   unitPrice   Float
   totalPrice  Float
-
   invoiceId   String
   invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
@@ -139,10 +129,10 @@ model InvoiceItem {
 }
 
 enum InvoiceStatus {
-  DRAFT   // Masih dalam bentuk draf
-  SENT    // Sudah dikirim ke pelanggan
-  PAID    // Sudah dibayar
-  VOID    // Dibatalkan
+  DRAFT
+  SENT
+  PAID
+  VOID
 }
 
 enum Status {
@@ -152,14 +142,14 @@ enum Status {
 }
 
 enum MovementType {
-  IN        
-  OUT       
-  ADJUSTMENT 
+  IN
+  OUT
+  ADJUSTMENT
 }
 
 enum ShipmentStatus {
-  LOADING      // Proses muat barang
-  IN_TRANSIT   // Dalam perjalanan
-  ARRIVED      // Sudah sampai tujuan
-  COMPLETED    // Selesai
+  LOADING
+  IN_TRANSIT
+  ARRIVED
+  COMPLETED
 }
