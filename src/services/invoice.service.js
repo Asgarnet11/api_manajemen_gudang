@@ -10,12 +10,28 @@ const createInvoiceFromShipment = async (shipmentId, invoiceData) => {
   return prisma.$transaction(async (tx) => {
     const shipment = await tx.shipment.findUnique({
       where: { id: shipmentId },
-      include: { items: true, _count: { select: { items: true } } },
+      include: {
+        items: true,
+        invoice: true,
+        _count: { select: { items: true } },
+      },
     });
 
     if (!shipment) throw new Error("Pengiriman tidak ditemukan.");
     if (shipment.invoice)
       throw new Error("Faktur untuk pengiriman ini sudah ada.");
+
+    if (shipment.items.length === 0) {
+      throw new Error(
+        "Tidak bisa membuat faktur untuk pengiriman tanpa barang."
+      );
+    }
+    const customerId = shipment.items[0].customerId;
+    if (!customerId) {
+      throw new Error(
+        "Gagal menemukan ID pelanggan dari barang di dalam pengiriman."
+      );
+    }
 
     const shippingCostPerItem = 50000;
     const totalAmount = shipment._count.items * shippingCostPerItem;
@@ -24,7 +40,7 @@ const createInvoiceFromShipment = async (shipmentId, invoiceData) => {
       data: {
         dueDate: new Date(invoiceData.dueDate),
         totalAmount: totalAmount,
-        customerId: shipment.customerId,
+        customerId: customerId,
         shipmentId: shipment.id,
         status: "DRAFT",
         items: {
@@ -43,7 +59,6 @@ const createInvoiceFromShipment = async (shipmentId, invoiceData) => {
     return newInvoice;
   });
 };
-
 const getAllInvoices = async () => {
   return prisma.invoice.findMany({
     include: { customer: { select: { nama: true } } },
