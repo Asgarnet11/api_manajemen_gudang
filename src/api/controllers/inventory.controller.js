@@ -39,4 +39,9 @@ const getAnalytics = async (req, res) => {
   }
 };
 
-module.exports = { createStockIn, getItemHistory, getLowStock, getAnalytics };
+module.exports = {
+  createStockIn,
+  getItemHistory,
+  getLowStock,
+  getAnalytics,
+};

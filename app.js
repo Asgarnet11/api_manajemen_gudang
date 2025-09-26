@@ -31,7 +31,7 @@ app.use("/api/items", itemRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/shipments", shipmentRoutes);
-app.use("/invoices", inventoryRoutes);
+app.use("/api/invoices", invoiceRoutes);
 
 const PORT = process.env.PORT || 5000;
 
