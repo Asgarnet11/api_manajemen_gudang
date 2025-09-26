@@ -27,7 +27,6 @@ const recordStockIn = async (data, userId) => {
         jumlah: {
           increment: jumlah,
         },
-
         nama_barang: nama_barang,
         barcode: barcode,
         minimum_stock_level: minimum_stock_level,
@@ -40,7 +39,9 @@ const recordStockIn = async (data, userId) => {
         barcode,
         jumlah,
         minimum_stock_level,
-        customer: { connect: { id: customerId } },
+        customer: {
+          connect: { id: customerId },
+        },
       },
     });
 
