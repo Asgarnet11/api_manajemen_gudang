@@ -4,6 +4,10 @@ const createStockIn = async (req, res) => {
   try {
     const userId = req.user.id;
     const newItem = await inventoryService.recordStockIn(req.body, userId);
+    req.io.emit("item_baru", {
+      message: `Barang baru "${newItem.nama_barang}" telah ditambahkan!`,
+      item: newItem,
+    });
     res
       .status(201)
       .json({ message: "Barang masuk berhasil dicatat", data: newItem });

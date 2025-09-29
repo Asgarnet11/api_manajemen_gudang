@@ -1,6 +1,8 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const http = require("http");
+const Server = require("socket.io");
 
 const authRoutes = require("./src/api/routes/auth.routes");
 const userRoutes = require("./src/api/routes/user.routes");
@@ -15,12 +17,33 @@ dotenv.config();
 
 const app = express();
 
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
+
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
 app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
   res.status(200).json({
     message: "API Server for Ekspedisi & Gudang is running with Prisma!",
+  });
+});
+
+io.on("connection", (socket) => {
+  console.log("🔌 Seorang pengguna terhubung:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("🔌 Seorang pengguna terputus:", socket.id);
   });
 });
 
@@ -36,5 +59,5 @@ app.use("/api/invoices", invoiceRoutes);
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
